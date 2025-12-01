@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    ECR_URI: "325583868777.dkr.ecr.us-east-1.amazonaws.com/ecr-app"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
+      - IMAGE_TAG=$(date +%s)
+      - echo "IMAGE_TAG=$IMAGE_TAG" > image_tag.txt
+
+  build:
+    commands:
+      - echo Building Docker image...
+      - docker build -t ecr-app:$IMAGE_TAG ./app
+
+  post_build:
+    commands:
+      - echo Pushing image...
+      - docker tag ecr-app:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+      - docker push $ECR_URI:$IMAGE_TAG
+
+artifacts:
+  files:
+    - image_tag.txt
+    - deployment.yaml

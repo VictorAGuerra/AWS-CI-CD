@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing kubectl...
+      - curl -sSL -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-01-05/bin/linux/amd64/kubectl
+      - chmod +x kubectl && mv kubectl /usr/local/bin/
+      - echo Updating kubeconfig...
+      - aws eks update-kubeconfig --region us-east-1 --name eksDeepDiveFrankfurt
+
+  build:
+    commands:
+      - echo Reading image tag...
+      - IMAGE_TAG=$(cat image_tag.txt)
+      - ECR_URI="325583868777.dkr.ecr.us-east-1.amazonaws.com/ecr-app"
+      - sed -i "s|IMAGE_TAG|$IMAGE_TAG|g" deployment.yaml
+      - kubectl apply -f deployment.yaml
